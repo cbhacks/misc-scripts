@@ -1,6 +1,6 @@
 #
 # CBHacks Script for DRNSF deployment to Discord
-# Copyright (c) 2018  "chekwob" <chek@wobbyworks.com>
+# Copyright (c) 2018-2019  "chekwob" <chek@wobbyworks.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -75,6 +75,7 @@
 
 import os
 import requests
+import json
 
 assert 'DISCORD_WEBHOOK' in os.environ
 assert 'ADMIN_EMAIL' in os.environ
@@ -85,6 +86,11 @@ req_headers = {
 
 def lambda_handler(event, context):
     assert len(event['Records']) == 1
+    if 'Sns' in event['Records'][0]:
+        # If this event was delivered via SNS, unwrap it to retrieve the true
+        # S3 event object.
+        event = json.loads(event['Records'][0]['Sns']['Message'])
+        assert len(event['Records']) == 1
     s3ev = event['Records'][0]['s3']
     requests.post(
         os.environ['DISCORD_WEBHOOK'],
